@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="be">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Палічка</title>
+<meta name="theme-color" content="#2a2420">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Палічка">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232a2420'/%3E%3Ccircle cx='32' cy='32' r='22' fill='%23111'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23333' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23E3A23B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=Unbounded:wght@500;800&display=swap">
+<style>
+:root{
+  --wood:#2a2420; --wood2:#352d27; --fg:#f1e9df; --muted:#b9ab9b; --line:#4a3f36; --panel:#3a312b; --accent:#E3A23B;
+  --ui:"Onest",system-ui,sans-serif; --disp:"Unbounded","Onest",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--wood);color:var(--fg);font:15px/1.4 var(--ui);min-height:100vh;
+  background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0 3px,transparent 3px 11px),linear-gradient(var(--wood),var(--wood2));
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+h1{margin:0;font:800 clamp(26px,6vw,36px)/1 var(--disp);letter-spacing:-.01em}
+.sub{margin:6px 0 0;color:var(--muted);font-size:14px}
+.tools{display:flex;gap:8px;align-items:center}
+.btn{font:500 14px var(--ui);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#6a5b4e}
+.btn.on{background:var(--fg);color:var(--wood);border-color:var(--fg)}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.icon{padding:8px;width:36px;height:36px;justify-content:center;position:relative}
+.dot{position:absolute;right:3px;top:3px;width:8px;height:8px;border-radius:50%;background:#777}
+.dot.ok{background:#5fd486}.dot.busy{background:var(--accent)}.dot.err{background:#ff6b5a}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.crate{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 52px;padding-right:30px}
+.rec{position:relative;display:block;color:inherit;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rec .disc{position:absolute;top:4%;left:4%;width:92%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#0b0b0b 0 2.5%,var(--lab) 3% 17%,#111 17.5% 19%,#1a1a1a 19.5%,#0d0d0d 40%,#222 41%,#0b0b0b 70%,#1d1d1d 71%);
+  transition:transform .45s ease;transform:translateX(14%)}
+.rec:hover .disc,.rec:focus-visible .disc{transform:translateX(38%) rotate(70deg)}
+.rec .sleeve{position:relative;aspect-ratio:1;display:grid;place-items:center;color:#fff;box-shadow:0 8px 18px rgba(0,0,0,.45);
+  background-image:linear-gradient(135deg,rgba(255,255,255,.2) 0 28%,transparent 28%)}
+.rec .sleeve svg{width:46%;height:46%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.rec b{display:block;margin-top:12px;font:500 15px/1.25 var(--disp);overflow-wrap:anywhere}
+.rec .rd{font-size:13px;color:var(--muted);display:block;margin-top:2px}
+.rec .pen{position:absolute;top:-10px;right:-10px;width:30px;height:30px;border-radius:50%;background:var(--fg);color:var(--wood);display:none;place-items:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.rec .pen svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.editing .rec .pen{display:grid}
+.editing .rec .sleeve{animation:wig .35s ease-in-out infinite alternate}
+@keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+.add .sleeve{background:transparent;border:2px dashed #6a5b4e;box-shadow:none;color:var(--muted);font:300 54px/1 var(--ui)}
+.add:hover .sleeve{border-color:var(--fg);color:var(--fg)}
+@media (max-width:620px){.crate{grid-template-columns:repeat(2,1fr);gap:28px 40px}}
+
+/* dialog */
+.ov{position:fixed;inset:0;background:rgba(10,8,6,.7);display:none;align-items:flex-end;justify-content:center;z-index:20;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.ov.open{display:flex}
+@media (min-width:620px){.ov{align-items:center}}
+.dlg{background:var(--panel);border:1px solid var(--line);border-radius:18px;width:100%;max-width:440px;max-height:calc(100vh - 32px);overflow:auto;padding:20px}
+.dlg h2{margin:0 0 14px;font:500 18px var(--disp)}
+.dlg label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}
+.dlg input[type=text],.dlg input[type=url],.dlg input[type=password]{width:100%;font:15px var(--ui);color:var(--fg);background:var(--wood);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.sw button[aria-pressed=true]{border-color:var(--fg)}
+.icons{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.icons button{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--wood);color:var(--fg);cursor:pointer;padding:7px}
+.icons button[aria-pressed=true]{background:var(--fg);color:var(--wood)}
+.icons svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+.row .grow{margin-right:auto}
+.btn.pri{background:var(--fg);color:var(--wood);border-color:var(--fg)}
+.btn.danger{color:#ff8b7d;border-color:#7a3a33}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--fg);color:var(--wood);padding:10px 16px;border-radius:10px;font-size:14px;transition:.25s;pointer-events:none;z-index:30;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-cat" viewBox="0 0 48 48"><path d="M10 22 11 8l9 7q4-1 8 0l9-7 1 14q2 15-14 17Q8 37 10 22Z"/><circle cx="18" cy="23" r="1.6" fill="currentColor"/><circle cx="30" cy="23" r="1.6" fill="currentColor"/><path d="M22 28h4l-2 2zM4 26h8M5 31l7-2M44 26h-8M43 31l-7-2"/></symbol>
+  <symbol id="i-nap" viewBox="0 0 48 48"><circle cx="24" cy="24" r="15"/><path d="M24 9a15 15 0 0 1 0 30Z" fill="currentColor"/><path d="M24 4v40"/></symbol>
+  <symbol id="i-pal" viewBox="0 0 48 48"><path d="M11 40 35 10M37 40 13 10"/><circle cx="35" cy="9" r="3" fill="currentColor"/><circle cx="13" cy="9" r="3" fill="currentColor"/><ellipse cx="24" cy="38" rx="14" ry="4"/></symbol>
+  <symbol id="i-cyh" viewBox="0 0 48 48"><rect x="12" y="6" width="24" height="28" rx="7"/><path d="M16 14h16v8H16z"/><circle cx="18" cy="28" r="1.6" fill="currentColor"/><circle cx="30" cy="28" r="1.6" fill="currentColor"/><path d="m16 34-5 8M32 34l5 8M14 39h20"/></symbol>
+  <symbol id="i-bud" viewBox="0 0 48 48"><ellipse cx="20" cy="14" rx="11" ry="4.5"/><path d="M9 14v6c0 2.5 5 4.5 11 4.5S31 22.5 31 20v-6M9 20v6c0 2.5 5 4.5 11 4.5"/><circle cx="31" cy="32" r="10"/><path d="M31 27v10M28 29.5h4.5a2 2 0 0 1 0 4H29"/></symbol>
+  <symbol id="i-afi" viewBox="0 0 48 48"><path d="M6 14h36v6a4 4 0 0 0 0 8v6H6v-6a4 4 0 0 0 0-8Z"/><path d="m24 18 1.9 3.8 4.1.6-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.1-.6Z" fill="currentColor"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 48 48"><rect x="8" y="12" width="22" height="30" rx="3" transform="rotate(-10 19 27)"/><rect x="18" y="8" width="22" height="30" rx="3"/><path d="M24 18h10M24 24h10M24 30h6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 48 48"><path d="M8 12h24v16H18l-6 6v-6H8z"/><path d="M32 18h8v14h-4v5l-5-5h-9v-4"/><path d="M14 18h12M14 23h8"/></symbol>
+  <symbol id="i-note" viewBox="0 0 48 48"><path d="M18 34V10l20-4v24"/><circle cx="13" cy="34" r="5"/><circle cx="33" cy="30" r="5"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 48 48"><path d="M24 40S7 30 7 18a8.5 8.5 0 0 1 17-2 8.5 8.5 0 0 1 17 2c0 12-17 22-17 22Z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 48 48"><path d="M7 22 24 8l17 14M12 18v22h24V18"/><path d="M20 40V28h8v12"/></symbol>
+  <symbol id="i-star" viewBox="0 0 48 48"><path d="m24 6 5.5 11.2 12.3 1.8-8.9 8.7 2.1 12.3L24 34.2 13 40l2.1-12.3-8.9-8.7 12.3-1.8Z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 48 48"><path d="M24 12c-4-3-10-4-17-3v28c7-1 13 0 17 3 4-3 10-4 17-3V9c-7-1-13 0-17 3Zm0 0v28"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 48 48"><path d="M10 38C8 20 20 8 40 8c0 20-12 32-30 30Z"/><path d="M10 38 28 20"/></symbol>
+  <symbol id="i-map" viewBox="0 0 48 48"><path d="M24 42s13-12 13-23a13 13 0 0 0-26 0c0 11 13 23 13 23Z"/><circle cx="24" cy="19" r="5"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 48 48"><path d="M6 8h6l5 22h20l4-14H14"/><circle cx="19" cy="38" r="3"/><circle cx="34" cy="38" r="3"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 48 48"><path d="M6 16h9l3-5h12l3 5h9v22H6z"/><circle cx="24" cy="26" r="7"/></symbol>
+  <symbol id="i-game" viewBox="0 0 48 48"><path d="M14 14h20a9 9 0 0 1 9 9v4a7 7 0 0 1-12 5l-3-3h-8l-3 3a7 7 0 0 1-12-5v-4a9 9 0 0 1 9-9Z"/><path d="M15 20v8M11 24h8"/><circle cx="31" cy="22" r="1.6" fill="currentColor"/><circle cx="35" cy="26" r="1.6" fill="currentColor"/></symbol>
+  <symbol id="s-share" viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></symbol>
+  <symbol id="s-sync" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5L20 16m0 4v-4h-4"/></symbol>
+  <symbol id="s-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+</svg>
+
+<div class="wrap" id="app">
+  <header>
+    <div>
+      <h1 id="title">Палічка</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="tools">
+      <button class="btn" id="langBtn" type="button">УКР</button>
+      <button class="btn" id="editBtn" type="button"><svg><use href="#s-pen"/></svg><span></span></button>
+      <button class="btn icon" id="shareBtn" type="button"><svg><use href="#s-share"/></svg></button>
+      <button class="btn icon" id="syncBtn" type="button"><svg><use href="#s-sync"/></svg><i class="dot" id="syncDot"></i></button>
+    </div>
+  </header>
+  <div class="crate" id="crate"></div>
+</div>
+
+<div class="ov" id="recOv">
+  <form class="dlg" id="recForm" autocomplete="off">
+    <h2 id="recTitle"></h2>
+    <label for="fName" data-t="name"></label><input type="text" id="fName" maxlength="40">
+    <label for="fDesc" data-t="desc"></label><input type="text" id="fDesc" maxlength="80">
+    <label for="fUrl" data-t="url"></label><input type="text" id="fUrl" inputmode="url" placeholder="https://">
+    <label data-t="color"></label><div class="sw" id="fColors"></div>
+    <label data-t="icon"></label><div class="icons" id="fIcons"></div>
+    <div class="row">
+      <button class="btn danger grow" type="button" id="delBtn"></button>
+      <button class="btn" type="button" id="recCancel" data-t="cancel"></button>
+      <button class="btn pri" type="submit" data-t="save"></button>
+    </div>
+  </form>
+</div>
+
+<div class="ov" id="syncOv">
+  <form class="dlg" id="syncForm" autocomplete="off">
+    <h2 data-t="syncTitle"></h2>
+    <label for="sToken" data-t="token"></label><input type="password" id="sToken">
+    <label for="sGist" data-t="gist"></label><input type="text" id="sGist">
+    <p class="hint" id="syncStatus"></p>
+    <div class="row">
+      <button class="btn" type="button" id="syncCancel" data-t="cancel"></button>
+      <button class="btn pri" type="submit" data-t="save"></button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const now=()=>Date.now();
+
+const I18N={
+ be:{title:'Палічка',sub:'Усе нашы прылады ў адным месцы',edit:'Рэдагаваць',done:'Гатова',add:'Новая пласцінка',editRec:'Пласцінка',
+   name:'Назва',desc:'Апісанне',url:'Лінк',color:'Колер',icon:'Абразок',save:'Захаваць',cancel:'Адмена',del:'Выдаліць',delSure:'Сапраўды выдаліць?',
+   needName:'Упішы назву',needUrl:'Упішы лінк',linkCopied:'Лінк скапіяваны, адпраўляй',syncOff:'Сінхранізацыя яшчэ не наладжана',
+   syncTitle:'Сінхранізацыя',token:'GitHub токен (з доступам да gist)',gist:'ID гіста (пуста = створыцца новы)',synced:'Усё сінхранізавана',syncErr:'Не атрымалася сінхранізаваць',
+   share:'Падзяліцца',sync:'Сінхранізацыя',joined:'Падключыліся да агульнай палічкі',lang:'УКР'},
+ uk:{title:'Поличка',sub:'Усі наші застосунки в одному місці',edit:'Редагувати',done:'Готово',add:'Нова платівка',editRec:'Платівка',
+   name:'Назва',desc:'Опис',url:'Посилання',color:'Колір',icon:'Іконка',save:'Зберегти',cancel:'Скасувати',del:'Видалити',delSure:'Точно видалити?',
+   needName:'Впиши назву',needUrl:'Впиши посилання',linkCopied:'Посилання скопійовано, надсилай',syncOff:'Синхронізацію ще не налаштовано',
+   syncTitle:'Синхронізація',token:'GitHub токен (з доступом до gist)',gist:'ID гіста (порожньо = створиться новий)',synced:'Усе синхронізовано',syncErr:'Не вдалося синхронізувати',
+   share:'Поділитися',sync:'Синхронізація',joined:'Підключилися до спільної полички',lang:'БЕЛ'}
+};
+let lang=store.get('palichka.lang','be');
+const t=k=>I18N[lang][k]||k;
+
+const COLORS=['#E3A23B','#4F8A68','#C4523A','#3A6CA6','#7558A3','#D46E8B','#2F8F8C','#8A6A4A','#5B6470'];
+const ICONS=['afi','cat','nap','cyh','cards','chat','pal','bud','note','heart','home','star','book','leaf','map','cart','cam','game'];
+const G='https://ultracheb.github.io/';
+const SEED=[
+ {id:'s-afisha',name:'Афіша',desc:'Падзеі, куды хочам схадзіць',url:G+'afisha/',color:'#D46E8B',icon:'afi',order:1},
+ {id:'s-tydzen',name:'Шуфлядка',desc:'Планер тыдня на дваіх',url:G+'tydzen/',color:'#E3A23B',icon:'cat',order:2},
+ {id:'s-domovik',name:'Напалам',desc:'Хто што робіць па хаце',url:G+'domovik/',color:'#4F8A68',icon:'nap',order:3},
+ {id:'s-cyhnik',name:'Цягнік',desc:'Цягнікі Лібень ⇄ цэнтр',url:G+'cyhnik/',color:'#3A6CA6',icon:'cyh',order:4},
+ {id:'s-kartachki',name:'Картачкі часоў',desc:'Картачкі для трэніроўкі',url:G+'kartachki/',color:'#7558A3',icon:'cards',order:5},
+ {id:'s-cesky',name:'Чэшская мова',desc:'Česky па крышачцы',url:G+'cesky/',color:'#C4523A',icon:'chat',order:6},
+].map(r=>({...r,updated:1}));
+
+let records=store.get('palichka.records',null)||SEED;
+let editing=false, cur=null, delArmed=false;
+const persist=()=>store.set('palichka.records',records);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic=n=>`<svg aria-hidden="true"><use href="#i-${ICONS.includes(n)?n:'star'}"/></svg>`;
+const safeUrl=u=>/^https?:\/\//i.test(u)?u:'#';
+
+function render(){
+  document.documentElement.lang=lang==='uk'?'uk':'be';
+  document.title=t('title');
+  $('title').textContent=t('title'); $('sub').textContent=t('sub');
+  $('langBtn').textContent=t('lang');
+  $('editBtn').querySelector('span').textContent=editing?t('done'):t('edit');
+  $('editBtn').classList.toggle('on',editing);
+  $('shareBtn').title=t('share'); $('shareBtn').setAttribute('aria-label',t('share'));
+  $('syncBtn').title=t('sync'); $('syncBtn').setAttribute('aria-label',t('sync'));
+  document.querySelectorAll('[data-t]').forEach(el=>el.textContent=t(el.dataset.t));
+  $('app').classList.toggle('editing',editing);
+  const list=records.filter(r=>!r.deleted).sort((a,b)=>(a.order||0)-(b.order||0));
+  $('crate').innerHTML=list.map(r=>`
+    <a class="rec" href="${esc(safeUrl(r.url))}" data-id="${esc(r.id)}" style="--lab:${esc(r.color)}">
+      <span class="disc"></span>
+      <span class="sleeve" style="background-color:${esc(r.color)}">${ic(r.icon)}</span>
+      <span class="pen"><svg><use href="#s-pen"/></svg></span>
+      <b>${esc(r.name)}</b><span class="rd">${esc(r.desc)}</span>
+    </a>`).join('')+`
+    <a class="rec add" href="#" id="addRec"><span class="sleeve">+</span><b>${t('add')}</b></a>`;
+}
+
+$('crate').addEventListener('click',e=>{
+  const a=e.target.closest('.rec'); if(!a) return;
+  if(a.id==='addRec'){ e.preventDefault(); openRec(null); return; }
+  if(editing){ e.preventDefault(); openRec(records.find(r=>r.id===a.dataset.id)); }
+});
+
+/* ---------- record editor ---------- */
+let pickColor, pickIcon;
+function drawPickers(){
+  $('fColors').innerHTML=COLORS.map(c=>`<button type="button" data-c="${c}" aria-label="${c}" aria-pressed="${c===pickColor}" style="background:${c}"></button>`).join('');
+  $('fIcons').innerHTML=ICONS.map(n=>`<button type="button" data-i="${n}" aria-label="${n}" aria-pressed="${n===pickIcon}">${ic(n)}</button>`).join('');
+}
+$('fColors').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pickColor=b.dataset.c;drawPickers();});
+$('fIcons').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pickIcon=b.dataset.i;drawPickers();});
+function openRec(r){
+  cur=r; delArmed=false;
+  $('recTitle').textContent=r?t('editRec'):t('add');
+  $('fName').value=r?.name||''; $('fDesc').value=r?.desc||''; $('fUrl').value=r?.url||'';
+  pickColor=r?.color||COLORS[Math.floor(Math.random()*COLORS.length)]; pickIcon=r?.icon||'star';
+  drawPickers();
+  $('delBtn').hidden=!r; $('delBtn').textContent=t('del');
+  $('recOv').classList.add('open'); setTimeout(()=>$('fName').focus(),50);
+}
+const closeRec=()=>$('recOv').classList.remove('open');
+$('recCancel').onclick=closeRec;
+$('recOv').addEventListener('click',e=>{if(e.target===$('recOv'))closeRec();});
+$('delBtn').onclick=()=>{
+  if(!delArmed){ delArmed=true; $('delBtn').textContent=t('delSure'); return; }
+  cur.deleted=true; cur.updated=now(); persist(); render(); closeRec(); schedulePush();
+};
+$('recForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('fName').value.trim(); let url=$('fUrl').value.trim();
+  if(!name){ toast(t('needName')); return; }
+  if(!url){ toast(t('needUrl')); return; }
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  const data={name,desc:$('fDesc').value.trim(),url,color:pickColor,icon:pickIcon,updated:now()};
+  if(cur) Object.assign(cur,data);
+  else records.push({id:'r'+now().toString(36)+Math.random().toString(36).slice(2,6),order:now(),...data});
+  persist(); render(); closeRec(); schedulePush();
+});
+
+$('editBtn').onclick=()=>{editing=!editing;render();};
+$('langBtn').onclick=()=>{lang=lang==='be'?'uk':'be';store.set('palichka.lang',lang);render();};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRec();$('syncOv').classList.remove('open');}});
+
+/* ---------- toast ---------- */
+let toastT; function toast(m){const el=$('toast');el.textContent=m;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2000);}
+
+/* ---------- gist sync ---------- */
+const FILE='palichka.json';
+let cfg=store.get('palichka.sync',{token:'',gist:''});
+if(!cfg.token){ for(const k of ['afisha.sync','shuflyadka.sync']){ const o=store.get(k,null); if(o&&o.token){ cfg={token:o.token,gist:''}; break; } } }
+let syncing=false, again=false, pushT=null;
+const setDot=s=>$('syncDot').className='dot '+(s||'');
+async function gh(method,path,body){
+  const r=await fetch('https://api.github.com'+path,{method,cache:'no-store',headers:{Authorization:'Bearer '+cfg.token,Accept:'application/vnd.github+json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error('GitHub '+r.status); return r.json();
+}
+function merge(a,b){
+  const m=new Map(); [...a,...b].forEach(r=>{const c=m.get(r.id); if(!c||(r.updated||0)>(c.updated||0)) m.set(r.id,r);});
+  return [...m.values()];
+}
+const sig=list=>JSON.stringify([...list].sort((x,y)=>x.id<y.id?-1:1).map(r=>[r.id,r.updated]));
+async function sync(){
+  if(!cfg.token) return;
+  if(syncing){ again=true; return; }
+  syncing=true; setDot('busy');
+  try{
+    const body=()=>({files:{[FILE]:{content:JSON.stringify({records},null,1)}}});
+    if(!cfg.gist){
+      const g=await gh('POST','/gists',{description:'Палічка',public:false,...body()});
+      cfg.gist=g.id; store.set('palichka.sync',cfg);
+    }else{
+      const g=await gh('GET','/gists/'+cfg.gist);
+      const raw=g.files&&g.files[FILE]&&g.files[FILE].content;
+      const incoming=raw?(JSON.parse(raw).records||[]):[];
+      records=merge(records,incoming); persist(); render();
+      if(sig(records)!==sig(incoming)) await gh('PATCH','/gists/'+cfg.gist,body());
+    }
+    store.set('palichka.sync',cfg); setDot('ok');
+  }catch(e){ console.error(e); setDot('err'); }
+  syncing=false; if(again){ again=false; sync(); }
+}
+function schedulePush(){ if(!cfg.token) return; clearTimeout(pushT); pushT=setTimeout(sync,800); }
+
+$('syncBtn').onclick=()=>{
+  $('sToken').value=cfg.token||''; $('sGist').value=cfg.gist||'';
+  $('syncStatus').textContent=!cfg.token?t('syncOff'):($('syncDot').classList.contains('err')?t('syncErr'):t('synced'));
+  $('syncOv').classList.add('open');
+};
+$('syncCancel').onclick=()=>$('syncOv').classList.remove('open');
+$('syncOv').addEventListener('click',e=>{if(e.target===$('syncOv'))$('syncOv').classList.remove('open');});
+$('syncForm').addEventListener('submit',e=>{
+  e.preventDefault(); cfg={token:$('sToken').value.trim(),gist:$('sGist').value.trim()};
+  store.set('palichka.sync',cfg); $('syncOv').classList.remove('open'); sync();
+});
+$('shareBtn').onclick=async()=>{
+  if(!cfg.token){ toast(t('syncOff')); $('syncBtn').click(); return; }
+  if(!cfg.gist) await sync();
+  if(!cfg.gist){ toast(t('syncErr')); return; }
+  const link=location.origin+location.pathname+'#sync='+encodeURIComponent(btoa(JSON.stringify(cfg)));
+  try{ if(navigator.share&&matchMedia('(pointer:coarse)').matches){ await navigator.share({title:t('title'),url:link}); return; } }catch(e){ if(e.name==='AbortError') return; }
+  try{ await navigator.clipboard.writeText(link); toast(t('linkCopied')); }catch(e){ prompt('',link); }
+};
+
+/* ---------- boot ---------- */
+(function boot(){
+  const hm=location.hash.match(/sync=([^&]+)/);
+  if(hm){ try{ const c=JSON.parse(atob(decodeURIComponent(hm[1]))); if(c.token&&c.gist){ cfg=c; store.set('palichka.sync',cfg); setTimeout(()=>toast(t('joined')),300); } }catch(e){}
+    history.replaceState(null,'',location.pathname+location.search); }
+  render(); sync();
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') sync(); });
+})();
+</script>
+</body>
+</html>
