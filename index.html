@@ -50,6 +50,17 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
 .rec .pen{position:absolute;top:-10px;right:-10px;width:30px;height:30px;border-radius:50%;background:var(--fg);color:var(--wood);display:none;place-items:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .rec .pen svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .editing .rec .pen{display:grid}
+.rec .grip{position:absolute;top:-10px;left:-10px;width:30px;height:30px;border-radius:50%;background:var(--fg);color:var(--wood);display:none;place-items:center;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;cursor:grab}
+.rec .grip svg{width:15px;height:15px;fill:currentColor}
+.rec .mv{position:absolute;left:0;right:0;top:0;aspect-ratio:1;display:none;align-items:flex-end;justify-content:center;gap:10px;padding-bottom:8px;z-index:2;pointer-events:none}
+.rec .mv button{pointer-events:auto;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;display:grid;place-items:center;padding:0}
+.rec .mv svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.editing .rec .grip{display:grid}.editing .rec .mv{display:flex}
+.editing .rec{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+@media (pointer:fine){.editing .rec[data-id]{cursor:grab}}
+.rec.dragging{opacity:.3}
+.ghost{position:fixed;z-index:40;pointer-events:none;margin:0;transform:rotate(-3deg) scale(1.04);filter:drop-shadow(0 16px 24px rgba(0,0,0,.5))}
+.ghost .sleeve,.rec.dragging .sleeve{animation:none!important}
 .editing .rec .sleeve{animation:wig .35s ease-in-out infinite alternate}
 @keyframes wig{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
 .add .sleeve{background:transparent;border:2px dashed #6a5b4e;box-shadow:none;color:var(--muted);font:300 54px/1 var(--ui)}
@@ -104,6 +115,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(-
   <symbol id="s-share" viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></symbol>
   <symbol id="s-sync" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5L20 16m0 4v-4h-4"/></symbol>
   <symbol id="s-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+  <symbol id="s-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/><circle cx="15" cy="18" r="2"/></symbol>
+  <symbol id="s-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="s-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
 </svg>
 
 <div class="wrap" id="app">
@@ -162,12 +176,12 @@ const I18N={
    name:'Назва',desc:'Апісанне',url:'Лінк',color:'Колер',icon:'Абразок',save:'Захаваць',cancel:'Адмена',del:'Выдаліць',delSure:'Сапраўды выдаліць?',
    needName:'Упішы назву',needUrl:'Упішы лінк',linkCopied:'Лінк скапіяваны, адпраўляй',syncOff:'Сінхранізацыя яшчэ не наладжана',
    syncTitle:'Сінхранізацыя',token:'GitHub токен (з доступам да gist)',gist:'ID гіста (пуста = створыцца новы)',synced:'Усё сінхранізавана',syncErr:'Не атрымалася сінхранізаваць',
-   share:'Падзяліцца',sync:'Сінхранізацыя',joined:'Падключыліся да агульнай палічкі',lang:'УКР'},
+   share:'Падзяліцца',sync:'Сінхранізацыя',joined:'Падключыліся да агульнай палічкі',lang:'УКР',moveL:'Перасунуць лявей',moveR:'Перасунуць правей'},
  uk:{title:'Поличка',sub:'Усі наші застосунки в одному місці',edit:'Редагувати',done:'Готово',add:'Нова платівка',editRec:'Платівка',
    name:'Назва',desc:'Опис',url:'Посилання',color:'Колір',icon:'Іконка',save:'Зберегти',cancel:'Скасувати',del:'Видалити',delSure:'Точно видалити?',
    needName:'Впиши назву',needUrl:'Впиши посилання',linkCopied:'Посилання скопійовано, надсилай',syncOff:'Синхронізацію ще не налаштовано',
    syncTitle:'Синхронізація',token:'GitHub токен (з доступом до gist)',gist:'ID гіста (порожньо = створиться новий)',synced:'Усе синхронізовано',syncErr:'Не вдалося синхронізувати',
-   share:'Поділитися',sync:'Синхронізація',joined:'Підключилися до спільної полички',lang:'БЕЛ'}
+   share:'Поділитися',sync:'Синхронізація',joined:'Підключилися до спільної полички',lang:'БЕЛ',moveL:'Пересунути лівіше',moveR:'Пересунути правіше'}
 };
 let lang=store.get('palichka.lang','be');
 const t=k=>I18N[lang][k]||k;
@@ -204,17 +218,62 @@ function render(){
   $('app').classList.toggle('editing',editing);
   const list=records.filter(r=>!r.deleted).sort((a,b)=>(a.order||0)-(b.order||0));
   $('crate').innerHTML=list.map(r=>`
-    <a class="rec" href="${esc(safeUrl(r.url))}" data-id="${esc(r.id)}" style="--lab:${esc(r.color)}">
+    <a class="rec" draggable="false" href="${esc(safeUrl(r.url))}" data-id="${esc(r.id)}" style="--lab:${esc(r.color)}">
       <span class="disc"></span>
       <span class="sleeve" style="background-color:${esc(r.color)}">${ic(r.icon)}</span>
       <span class="pen"><svg><use href="#s-pen"/></svg></span>
+      <span class="grip"><svg><use href="#s-grip"/></svg></span>
+      <span class="mv"><button type="button" data-d="-1" aria-label="${t('moveL')}"><svg><use href="#s-l"/></svg></button><button type="button" data-d="1" aria-label="${t('moveR')}"><svg><use href="#s-r"/></svg></button></span>
       <b>${esc(r.name)}</b><span class="rd">${esc(r.desc)}</span>
     </a>`).join('')+`
     <a class="rec add" href="#" id="addRec"><span class="sleeve">+</span><b>${t('add')}</b></a>`;
 }
 
-$('crate').addEventListener('click',e=>{
+/* ---------- reorder ---------- */
+const crate=$('crate');
+let drag=null, noClickUntil=0;
+const domIds=()=>[...crate.querySelectorAll('.rec[data-id]')].map(x=>x.dataset.id);
+function commitOrder(ids){
+  ids.forEach((id,i)=>{const r=records.find(x=>x.id===id); if(r&&r.order!==i+1){r.order=i+1;r.updated=now();}});
+  persist(); render(); schedulePush();
+}
+crate.addEventListener('pointerdown',e=>{
+  if(!editing||e.button>0) return;
+  const a=e.target.closest('.rec[data-id]'); if(!a||e.target.closest('.mv')) return;
+  if(e.pointerType!=='mouse'&&!e.target.closest('.grip')) return;
+  drag={a,x:e.clientX,y:e.clientY,on:false};
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const a=drag.a;
+  if(!drag.on){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6) return;
+    const r=a.getBoundingClientRect();
+    drag.on=true; drag.dx=drag.x-r.left; drag.dy=drag.y-r.top;
+    drag.g=a.cloneNode(true); drag.g.classList.add('ghost'); drag.g.style.width=r.width+'px';
+    document.body.appendChild(drag.g); a.classList.add('dragging');
+  }
+  e.preventDefault();
+  drag.g.style.left=(e.clientX-drag.dx)+'px'; drag.g.style.top=(e.clientY-drag.dy)+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY)?.closest('#crate .rec[data-id]');
+  if(el&&el!==a){ const r=el.getBoundingClientRect(); crate.insertBefore(a,e.clientX<r.left+r.width/2?el:el.nextSibling); }
+},{passive:false});
+function endDrag(){
+  if(!drag) return;
+  const d=drag; drag=null;
+  if(!d.on) return;
+  d.g.remove(); d.a.classList.remove('dragging'); noClickUntil=Date.now()+350;
+  commitOrder(domIds());
+}
+window.addEventListener('pointerup',endDrag); window.addEventListener('pointercancel',endDrag);
+
+crate.addEventListener('click',e=>{
   const a=e.target.closest('.rec'); if(!a) return;
+  if(Date.now()<noClickUntil){ e.preventDefault(); return; }
+  const mv=e.target.closest('.mv button');
+  if(mv){ e.preventDefault(); const ids=domIds(), i=ids.indexOf(a.dataset.id), j=i+Number(mv.dataset.d);
+    if(j>=0&&j<ids.length){ [ids[i],ids[j]]=[ids[j],ids[i]]; commitOrder(ids); } return; }
+  if(e.target.closest('.grip')){ e.preventDefault(); return; }
   if(a.id==='addRec'){ e.preventDefault(); openRec(null); return; }
   if(editing){ e.preventDefault(); openRec(records.find(r=>r.id===a.dataset.id)); }
 });
